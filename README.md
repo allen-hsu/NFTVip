@@ -18,6 +18,8 @@ Join us in redefining the future of loyalty programs, where your membership trul
 ![Flow](./flow.png)
 
 DemoTMA: t.me/nftpoint_bot/pointstore
+Test Account mnemonics :
+"fruit rescue web moral pluck coin step thought brisk life engine oak travel universe ladder grit carry item until mammal exclude cement among uphold"
 
 ## Project structure
 
