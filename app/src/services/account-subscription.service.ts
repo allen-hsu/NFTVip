@@ -1,73 +1,76 @@
-import { Address, TonClient, Transaction } from "@ton/ton";
-import { retry } from "@/helpers/common-helpers.ts";
+import { Address, TonClient, Transaction } from '@ton/ton';
+import { retry } from '@/helpers/common-helpers.ts';
 
 export class AccountSubscriptionService {
-  constructor(
-    readonly client: TonClient,
-    readonly accountAddress: Address,
-    readonly onTransactions: (txs: Transaction[]) => Promise<void> | void,
-    private startTime = 0,
-  ) {
-  }
+    constructor(
+        readonly client: TonClient,
+        readonly accountAddress: Address,
+        readonly onTransactions: (txs: Transaction[]) => Promise<void> | void,
+        private startTime = 0,
+    ) {}
 
-  private lastIndexedLt?: string;
-  private lastTransactionHash?: string;
+    private lastIndexedLt?: string;
+    private lastTransactionHash?: string;
 
-  async getTransactionsBatch() {
-    let transactions = await retry(() => this.client.getTransactions(this.accountAddress, {
-      lt: this.lastIndexedLt,
-      limit: 100,
-      hash: this.lastTransactionHash,
-      archival: true,
-    }), { retries: 10, delay: 1000 });
-    transactions = transactions.filter(tx => tx.now > this.startTime);
+    async getTransactionsBatch() {
+        let transactions = await retry(
+            () =>
+                this.client.getTransactions(this.accountAddress, {
+                    lt: this.lastIndexedLt,
+                    limit: 100,
+                    hash: this.lastTransactionHash,
+                    archival: true,
+                }),
+            { retries: 10, delay: 1000 },
+        );
+        transactions = transactions.filter((tx) => tx.now > this.startTime);
 
-    if (transactions.length === 0) {
-      return { hasMore: false, transactions };
+        if (transactions.length === 0) {
+            return { hasMore: false, transactions };
+        }
+
+        const lastTransaction = transactions.at(-1)!;
+        this.lastIndexedLt = lastTransaction.lt.toString();
+        this.lastTransactionHash = lastTransaction.hash().toString('base64');
+
+        return { hasMore: true, transactions };
     }
 
-    const lastTransaction = transactions.at(-1)!;
-    this.lastIndexedLt = lastTransaction.lt.toString();
-    this.lastTransactionHash = lastTransaction.hash().toString('base64');
+    async subscribeToTransactionUpdate(): Promise<void> {
+        this.lastTransactionHash = undefined;
+        this.lastIndexedLt = undefined;
 
-    return { hasMore: true, transactions };
-  }
+        let iterationStartTime: number = this.startTime;
 
-  async subscribeToTransactionUpdate(): Promise<void> {
-    this.lastTransactionHash = undefined;
-    this.lastIndexedLt = undefined;
+        let hasMore = true;
 
-    let iterationStartTime: number = this.startTime;
+        while (hasMore) {
+            const res = await this.getTransactionsBatch();
 
-    let hasMore = true;
+            hasMore = res.hasMore;
+            if (res.transactions.length > 0) {
+                iterationStartTime = Math.max(res.transactions[0].now, iterationStartTime);
+                await this.onTransactions(res.transactions);
+            }
+        }
 
-    while (hasMore) {
-      const res = await this.getTransactionsBatch();
-
-      hasMore = res.hasMore;
-      if (res.transactions.length > 0) {
-        iterationStartTime = Math.max(res.transactions[0].now, iterationStartTime);
-        await this.onTransactions(res.transactions);
-      }
+        this.startTime = iterationStartTime;
     }
 
-    this.startTime = iterationStartTime;
-  }
+    start(): NodeJS.Timeout {
+        let isProcessing = false;
+        const tick = async () => {
+            if (isProcessing) return;
+            isProcessing = true;
 
-  start(): number {
-    let isProcessing = false;
-    const tick = async () => {
-      if (isProcessing) return;
-      isProcessing = true;
+            await this.subscribeToTransactionUpdate();
 
-      await this.subscribeToTransactionUpdate();
+            isProcessing = false;
+        };
 
-      isProcessing = false;
-    };
+        const intervalId = setInterval(tick, 10 * 1000);
+        tick();
 
-    const intervalId = setInterval(tick, 10 * 1000);
-    tick();
-
-    return intervalId;
-  }
+        return intervalId;
+    }
 }
