@@ -57,7 +57,7 @@ export class AccountSubscriptionService {
         this.startTime = iterationStartTime;
     }
 
-    start(): NodeJS.Timeout {
+    start(): number {
         let isProcessing = false;
         const tick = async () => {
             if (isProcessing) return;
@@ -71,6 +71,6 @@ export class AccountSubscriptionService {
         const intervalId = setInterval(tick, 10 * 1000);
         tick();
 
-        return intervalId;
+        return intervalId as unknown as number;
     }
 }

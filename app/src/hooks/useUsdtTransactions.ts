@@ -65,7 +65,7 @@ export const useUsdtTransactions = (): UsdtTransaction[] => {
     const { tonClient } = useApp();
     const { walletAddress } = useTonConnect();
     const [transactions, setTransactions] = useState<UsdtTransaction[]>([]);
-    const intervalId = useRef<NodeJS.Timeout | null>(null);
+    const intervalId = useRef<number | null>(null);
     const accountSubscriptionService = useRef<AccountSubscriptionService | null>(null);
     const effectRan = useRef(false); // double render in dev mode
 

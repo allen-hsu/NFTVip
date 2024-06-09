@@ -142,7 +142,7 @@ export class NftCollection implements Contract {
         };
     }
     async getItemAddressByIndex(provider: ContractProvider, index: bigint | number) {
-        let args = new TupleBuilder();
+        const args = new TupleBuilder();
         args.writeNumber(index);
         const result = await provider.get('get_nft_address_by_index', args.build());
         return result.stack.readAddress();
