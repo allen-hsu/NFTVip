@@ -1,6 +1,6 @@
 import { NftCollection } from '@/wrappers/NftCollection';
 import { NftItem } from '@/wrappers/NftItem';
-import { Address, OpenedContract, toNano } from '@ton/core';
+import { Address, OpenedContract } from '@ton/core';
 import { TonClient } from '@ton/ton';
 import { useEffect, useRef, useState } from 'react';
 

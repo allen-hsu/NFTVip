@@ -10,7 +10,7 @@ import styles from './styles.module.scss';
 
 const Main = () => {
     const navigate = useNavigate();
-    const { cart, addProduct, removeProduct, isVipStatus, checkStatus } = useApp();
+    const { cart, addProduct, removeProduct, isVipStatus } = useApp();
     const address = useTonAddress();
     const { open } = useTonConnectModal();
 

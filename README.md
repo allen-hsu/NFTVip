@@ -1,5 +1,24 @@
 # nftpoint
 
+## Description
+
+The TON VIP Membership Card is a groundbreaking solution designed to enhance the membership experience through the innovative use of blockchain technology. Our platform allows users to collect membership points every time they purchase a product, with additional benefits for those who own our exclusive VIP NFT. These points can be redeemed for a variety of rewards, creating a more engaging and rewarding experience for our members.
+
+Our NFT membership cards offer a secure and transparent way to manage loyalty programs, ensuring that members’ benefits are protected and easily accessible. By integrating with the TON blockchain, we provide a decentralized and tamper-proof system that guarantees the authenticity and value of each membership card.
+
+Join us in redefining the future of loyalty programs, where your membership truly matters and every transaction adds value to your experience.
+
+## Flow
+
+1. User Mint or Become VIP
+2. VIP User can get points for each purchase and discount
+3. Backend to monitor the jetton purchase and to give points (through the NFT Collection contract, so backend have NFTcollection owner private key)
+4. The point can have more usage in the future, like redeeming for discount, etc.
+
+![Flow](./flow.png)
+
+DemoTMA: t.me/nftpoint_bot/pointstore
+
 ## Project structure
 
 -   `app` - the frontend of the project, using React and TonConnect UI.
