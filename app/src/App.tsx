@@ -38,7 +38,7 @@ function App() {
         miniApp.setBgColor('#161C24');
         miniApp.setHeaderColor('#161C24');
         viewport?.expand();
-    }, []);
+    }, [miniApp, viewport]);
 
     const manifestUrl = useMemo(() => {
         return new URL('tonconnect-manifest.json', window.location.href).toString();

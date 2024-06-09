@@ -11,11 +11,11 @@ export async function run(provider: NetworkProvider) {
         NftCollection.createFromConfig(
             {
                 ownerAddress: provider.sender().address!!,
-                nextItemIndex: 0,
+                nextItemIndex: 0n,
                 collectionContent: buildCollectionContentCell({
-                    name: 'OnChain collection',
-                    description: 'Collection of items with onChain metadata',
-                    image: 'https://raw.githubusercontent.com/Cosmodude/Nexton/main/Nexton_Logo.jpg',
+                    name: 'VIP Collection',
+                    description: 'VIP Collection',
+                    image: 'https://i.imgur.com/QYiSfRi.jpeg',
                 }),
                 nftItemCode: await compile('NftItem'),
                 royaltyParams: {
@@ -35,12 +35,12 @@ export async function run(provider: NetworkProvider) {
         value: toNano('0.04'),
         queryId: randomSeed,
         amount: toNano('0.014'),
-        itemIndex: 0,
+        itemIndex: 0n,
         itemOwnerAddress: provider.sender().address!!,
         itemContent: setItemContentCell({
-            name: 'OnChain',
-            description: 'Holds onchain metadata',
-            image: 'https://raw.githubusercontent.com/Cosmodude/Nexton/main/Nexton_Logo.jpg',
+            name: 'VIP Item',
+            description: 'VIP Item',
+            image: 'https://i.imgur.com/QYiSfRi.jpeg',
         }),
     });
     console.log(`NFT Item deployed at https://testnet.tonviewer.com/${nftCollection.address}`);

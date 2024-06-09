@@ -5,55 +5,72 @@ import { DisconnectIcon, WalletIcon } from '@/constants/icons.tsx';
 import { separateTonAddress } from '@/helpers/common-helpers.ts';
 import styles from './styles.module.scss';
 import { useTonConnect } from '@/hooks/useTonConnect.ts';
-import { useNftCollection } from '@/hooks/useNftCollectionData';
-import { useCallback, useEffect, useState } from 'react';
-import { toNano } from '@ton/core';
+import { useNftCollection } from '@/hooks/useNftCollection';
+import { useCallback, useState } from 'react';
+import { Address, toNano } from '@ton/core';
 import Button from '../Button';
+import { setItemContentCell } from '@/OnChain';
+import { useApp } from '@/context/app-context';
+import { NFT_COLLECTION_ADDRESS } from '@/constants/common-constants';
+import { TonClient } from '@ton/ton';
 
-const NFT_COLLECTION_ADDRESS = 'EQCMoR0b5K65iItghLu3Ot_wdTj2jqLtUQVSUi9-3c2badIR';
+const randomSeed = Math.floor(Math.random() * 10000);
 const Header = () => {
+    const { tonClient, isVipStatus, vipPoints, checkStatus } = useApp();
     const address = useTonAddress();
     const [tonConnectUI] = useTonConnectUI();
-    const { network } = useTonConnect();
+    const { network, sender } = useTonConnect();
     const navigate = useNavigate();
     const location = useLocation();
-    const nftCollection = useNftCollection(NFT_COLLECTION_ADDRESS);
-    const [isVipStatus, setIsVipStatus] = useState(false);
+    const nftCollection = useNftCollection(NFT_COLLECTION_ADDRESS, tonClient);
+    const [loading, setLoading] = useState(false);
 
-    const isVip = useCallback(async () => {
-        if (nftCollection === null || address === '') {
-            return false;
-        }
-
-        const collectionData = await nftCollection.getCollectionData();
-
-        const nextIndex = collectionData.nextItemId;
-        console.log(`Next item index: ${nextIndex}`);
-
-        for (let i = 0; i < nextIndex; i++) {
-            const itemAddress = await nftCollection.getItemAddressByIndex({
-                type: 'int',
-                value: toNano(i),
-            });
-            if (address === itemAddress.toString()) {
-                return true;
+    const waitTxFinalized = useCallback(async (txlt: string, address: Address, tonClient: TonClient) => {
+        for (let attempt = 0; attempt < 10; attempt++) {
+            await sleep(2000);
+            const result = await tonClient.getContractState(address);
+            const lastLx = result.lastTransaction?.lt;
+            if (lastLx !== txlt) {
+                console.log(`Transaction ${txlt} finalized`);
+                break;
             }
-            console.log(`Item address: ${itemAddress.toString()}`);
         }
-        return false;
-    }, [address, nftCollection]);
+    }, []);
 
-    const mintVIP = useCallback(async () => {}, []);
-
-    useEffect(() => {
-        isVip()
-            .then((vipStatus) => {
-                setIsVipStatus(vipStatus);
-            })
-            .catch((error) => {
-                setIsVipStatus(false);
+    const sleep = (ms: number): Promise<void> => {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    };
+    const mintVIP = useCallback(async () => {
+        if (nftCollection === null || address === '' || tonClient === undefined) {
+            return;
+        }
+        setLoading(true);
+        try {
+            const collectionData = await nftCollection.getCollectionData();
+            await nftCollection.sendMintNft(sender, {
+                value: toNano('0.04'),
+                queryId: randomSeed,
+                amount: toNano('0.014'),
+                itemIndex: collectionData.nextItemId,
+                itemOwnerAddress: Address.parse(address),
+                itemContent: setItemContentCell({
+                    name: 'VIP Item',
+                    description: 'VIP Item',
+                    image: 'https://i.imgur.com/QYiSfRi.jpeg',
+                }),
             });
-    }, [isVip]);
+
+            const result = await tonClient.getContractState(NFT_COLLECTION_ADDRESS);
+            const txLt = result.lastTransaction?.lt ?? '';
+            console.log(`Last transaction: ${txLt}`);
+
+            await waitTxFinalized(txLt, NFT_COLLECTION_ADDRESS, tonClient);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    }, [address, nftCollection, sender, tonClient, waitTxFinalized]);
 
     return (
         address && (
@@ -74,11 +91,15 @@ const Header = () => {
                         </button>
                     </div>
                 </div>
+
                 <div className={styles.header}>
-                    <div>VIP: {isVipStatus ? 'Yes' : 'No'}</div>
+                    <div>VIP: {checkStatus ? (isVipStatus ? 'Yes' : 'No') : 'Checking...'}</div>
+                    {isVipStatus && <div>VIP Points: {checkStatus ? vipPoints : 'Checking...'}</div>}
                     {!isVipStatus && (
                         <div>
-                            <Button onClick={mintVIP}>Become VIP</Button>
+                            <Button onClick={mintVIP} disabled={loading || !checkStatus}>
+                                {loading ? 'Minting...' : 'Become VIP'}
+                            </Button>
                         </div>
                     )}
                 </div>

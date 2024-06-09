@@ -7,6 +7,7 @@ import {
     ContractProvider,
     Sender,
     SendMode,
+    TupleBuilder,
     TupleItemInt,
 } from '@ton/core';
 
@@ -17,7 +18,7 @@ export type RoyaltyParams = {
 };
 export type NftCollectionConfig = {
     ownerAddress: Address;
-    nextItemIndex: number;
+    nextItemIndex: bigint;
     collectionContent: Cell;
     nftItemCode: Cell;
     royaltyParams: RoyaltyParams;
@@ -63,7 +64,7 @@ export class NftCollection implements Contract {
             value: bigint;
             queryId: number;
             amount: bigint; // to send with nft
-            itemIndex: number;
+            itemIndex: bigint;
             itemOwnerAddress: Address;
             itemContent: Cell;
         },
@@ -119,7 +120,7 @@ export class NftCollection implements Contract {
             body: beginCell()
                 .storeUint(4, 32) //operation
                 .storeUint(opts.queryId, 64)
-                .storeInt(opts.points, 32)
+                .storeUint(opts.points, 32)
                 .storeAddress(opts.nftItemAddress)
                 .endCell(),
         });
@@ -141,9 +142,10 @@ export class NftCollection implements Contract {
             ownerAddress: ownerAddress,
         };
     }
-    async getItemAddressByIndex(provider: ContractProvider, index: TupleItemInt) {
-        const res = await provider.get('get_nft_address_by_index', [index]);
-        const itemAddress = await res.stack.readAddress();
-        return itemAddress;
+    async getItemAddressByIndex(provider: ContractProvider, index: bigint | number) {
+        let args = new TupleBuilder();
+        args.writeNumber(index);
+        const result = await provider.get('get_nft_address_by_index', args.build());
+        return result.stack.readAddress();
     }
 }

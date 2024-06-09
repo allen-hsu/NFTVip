@@ -1,7 +1,7 @@
-import { Address, toNano } from '@ton/core';
-import { NftCollection } from '../wrappers/NftCollection';
+import { Address, toNano, fromNano } from '@ton/core';
 import { NetworkProvider } from '@ton/blueprint';
 import { setItemContentCell } from './nftContent/onChain';
+import { NftCollection } from '../wrappers/NftCollection';
 
 const randomSeed = Math.floor(Math.random() * 10000);
 
@@ -12,16 +12,20 @@ export async function run(provider: NetworkProvider, args: string[]) {
 
     const nftCollection = provider.open(NftCollection.createFromAddress(address));
 
+    const collectionData = await nftCollection.getCollectionData();
+    console.log(collectionData);
+
+    console.log(`Next item index: ${collectionData.nextItemId}`);
     const mint = await nftCollection.sendMintNft(provider.sender(), {
-        value: toNano('0.02'),
+        value: toNano('0.04'),
         queryId: randomSeed,
         amount: toNano('0.014'),
-        itemIndex: 0,
+        itemIndex: collectionData.nextItemId,
         itemOwnerAddress: provider.sender().address!!,
         itemContent: setItemContentCell({
-            name: 'OnChain',
-            description: 'Holds onchain metadata',
-            image: 'https://raw.githubusercontent.com/Cosmodude/Nexton/main/Nexton_Logo.jpg',
+            name: 'VIP Item',
+            description: 'VIP Item',
+            image: 'https://i.imgur.com/QYiSfRi.jpeg',
         }),
     });
 

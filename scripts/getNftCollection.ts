@@ -1,7 +1,7 @@
 import { Address, toNano } from '@ton/core';
-import { NftCollection } from '../wrappers/NftCollection';
 import { compile, NetworkProvider } from '@ton/blueprint';
 import { buildCollectionContentCell, setItemContentCell } from './nftContent/onChain';
+import { NftCollection } from '../wrappers/NftCollection';
 
 const randomSeed = Math.floor(Math.random() * 10000);
 
@@ -20,10 +20,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
     console.log(`Next item index: ${nextIndex}`);
 
     for (let i = 0; i < nextIndex; i++) {
-        const itemAddress = await nftCollection.getItemAddressByIndex({
-            type: 'int',
-            value: toNano(i),
-        });
+        const itemAddress = await nftCollection.getItemAddressByIndex(i);
         console.log(`Item address: ${itemAddress.toString()}`);
     }
 }

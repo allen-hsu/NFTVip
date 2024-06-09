@@ -10,7 +10,7 @@ import styles from './styles.module.scss';
 
 const Main = () => {
     const navigate = useNavigate();
-    const { cart, addProduct, removeProduct } = useApp();
+    const { cart, addProduct, removeProduct, isVipStatus, checkStatus } = useApp();
     const address = useTonAddress();
     const { open } = useTonConnectModal();
 
@@ -47,6 +47,7 @@ const Main = () => {
                     key={product.id}
                     onAddProduct={addProduct}
                     onRemoveProduct={removeProduct}
+                    isVipStatus={isVipStatus}
                 />
             ))}
         </div>
