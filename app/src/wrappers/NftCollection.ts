@@ -8,7 +8,6 @@ import {
     Sender,
     SendMode,
     TupleBuilder,
-    TupleItemInt,
 } from '@ton/core';
 
 export type RoyaltyParams = {
@@ -132,10 +131,10 @@ export class NftCollection implements Contract {
         collectionContent: Cell;
     }> {
         const collection_data = await provider.get('get_collection_data', []);
-        const stack = await collection_data.stack;
-        let nextItem: bigint = stack.readBigNumber();
-        let collectionContent = await stack.readCell();
-        let ownerAddress = await stack.readAddress();
+        const stack = collection_data.stack;
+        const nextItem: bigint = stack.readBigNumber();
+        const collectionContent = stack.readCell();
+        const ownerAddress = stack.readAddress();
         return {
             nextItemId: nextItem,
             collectionContent: collectionContent,
